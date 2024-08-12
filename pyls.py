@@ -1,4 +1,6 @@
 import argparse
+import os
+from datetime import datetime
 
 parser = argparse.ArgumentParser(
 			prog='pyls',
@@ -20,26 +22,52 @@ parser.add_argument('-F', '--filetype',
 args = parser.parse_args()
 
 def main(args):
-	results = getDescriptionsOfFilesinDir(args)
+	results = getDescriptionsOfFilesInDir(args)
 	displayResults(results, args) 
 	
-def getDescriptionsOfFilesinDir(flags):
-	"""
-	Lists the files and folders in the given directory 
-        and constructs a list of dicts with the required info.
-	flags is a structure with the following fields -
-	.dirname = The directory whose contents are to be listed.
-	.long_format = True if the user has asked for the long format.
-	.filetype = True if the user has asked for a file type info as well.
+def getDescriptionsOfFilesInDir(flags):
+    """
+    Lists the files and folders in the given directory 
+    and constructs a list of dicts with the required info.
+    flags is an object with the following fields:
+    .dirname = The directory whose contents are to be listed.
+    .long_format = True if the user has asked for the long format.
+    .filetype = True if the user has asked for a file type info as well.
 
-	The return value is a list of dictionaries each with the following fields - 
-	"filename" = The name of the file.
-	"filetype" = "d", "f", or "x" indicating "directory", "plain file", 
-			or "executable file", respectively.
-	"modtime" = Last modified time of the file as a 'datetime' object
-	"filesize" = Number of bytes in the file.
-	"""
-	return []
+    The return value is a list of dictionaries each with the following fields: 
+    - "filename": The name of the file.
+    - "filetype": A character indicating the file type: "/" for directories, "*" for executables, or "" for other files.
+    - "modtime": Last modified time of the file as a string in "YYYY-MM-DD HH:MM:SS" format.
+    - "filesize": Number of bytes in the file (0 for directories).
+    """
+    entries = []
+    directory_items = os.listdir(flags.dirname)
+
+    for item in directory_items:
+        path = os.path.join(flags.dirname, item)
+        file_info = {
+            "filename": item,
+            "filetype": "",
+            "modtime": "",
+            "filesize": 0
+        }
+
+        # Get file type
+        if flags.filetype:
+            if os.path.isdir(path):
+                file_info["filetype"] = "/"
+            elif os.path.isfile(path) and os.access(path, os.X_OK):
+                file_info["filetype"] = "*"
+
+        # Get long format details
+        if flags.long_format:
+            file_info["modtime"] = datetime.fromtimestamp(os.path.getmtime(path)).strftime('%Y-%m-%d %H:%M:%S')
+            if os.path.isfile(path):
+                file_info["filesize"] = os.path.getsize(path)
+
+        entries.append(file_info)
+    
+    return entries
 
 def displayResults(results, controls):
 	"""
