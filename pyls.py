@@ -70,20 +70,25 @@ def getDescriptionsOfFilesInDir(flags):
     return entries
 
 def displayResults(results, controls):
-	"""
-	Takes a list of file descriptions and display control flags
-	and prints to the standard output.
+    """
+    Takes a list of file descriptions and display control flags
+    and prints to the standard output.
 
-	Inputs - 
-	results = List of dictionaries, like returned by getDescriptionsOfFilesInDir()
-	controls = Object with attributes .long_format and .filetype
-			indicating how to show the information.
+    Inputs: 
+    - results: List of dictionaries, like returned by getDescriptionsOfFilesInDir().
+    - controls: Object with attributes .long_format and .filetype
+                indicating how to show the information.
 
-	Outputs:
-	To standard output. Returns None.
-	"""
-
-	return None
+    Outputs:
+    To standard output. Returns None.
+    """
+    for entry in results:
+        if controls.long_format:
+            print(f"{entry['modtime']} {entry['filesize']:>8} {entry['filename']}{entry['filetype']}")
+        elif controls.filetype:
+            print(f"{entry['filename']}{entry['filetype']}")
+        else:
+            print(entry['filename'])
 
 main(args)
 
